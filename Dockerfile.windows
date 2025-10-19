@@ -1,0 +1,13 @@
+# --- Build (precompila sitio WebForms) ---
+FROM mcr.microsoft.com/dotnet/framework/sdk:4.8-windowsservercore-ltsc2019 AS build
+SHELL ["cmd", "/S", "/C"]
+WORKDIR C:\src
+COPY . .
+"C:\Windows\Microsoft.NET\Framework64\v4.0.30319\aspnet_compiler.exe" -v / -p C:\src C:\out -c -fixednames
+
+# --- Runtime (IIS + ASP.NET 4.8) ---
+FROM mcr.microsoft.com/dotnet/framework/aspnet:4.8-windowsservercore-ltsc2019
+SHELL ["cmd", "/S", "/C"]
+RUN powershell -Command "Remove-Item -Recurse -Force C:\\inetpub\\wwwroot\\*"
+COPY --from=build C:\\out\\  C:\\inetpub\\wwwroot\\
+EXPOSE 80
